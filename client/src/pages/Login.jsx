@@ -1,45 +1,90 @@
-import { Form, Input, Button, Typography } from "antd";
-import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Typography, message, Divider } from "antd";
+import { useNavigate } from "react-router-dom";
+// import { useAuth } from "../context/AuthContext";
 
-const { Title } = Typography;
+const { Title, Text, Link } = Typography;
 
 const Login = () => {
-  const onFinish = (values) => {
-    console.log("Login values:", values);
-    // TODO: Call API to log the user in
+  const navigate = useNavigate();
+  //const { login } = useAuth();
+
+  const onFinish = async (values) => {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        login(data);
+        message.success("Logged in successfully!");
+        navigate("/dashboard");
+      } else {
+        message.error(data.message || "Login failed.");
+      }
+    } catch (err) {
+      message.error("Something went wrong.");
+    }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "50px auto" }}>
-      <Title level={2}>Login</Title>
-      <Form
-        name="login"
-        onFinish={onFinish}
-        layout="vertical"
-        autoComplete="off"
-      >
+    <div
+      style={{
+        maxWidth: 420,
+        margin: "4rem auto",
+        padding: "2.5rem",
+        borderRadius: "12px",
+        boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
+        background: "#fff",
+      }}
+    >
+      <Title level={2} style={{ textAlign: "center", marginBottom: 24 }}>
+        Welcome Back
+      </Title>
+
+      <Form layout="vertical" onFinish={onFinish}>
         <Form.Item
           name="email"
           label="Email"
-          rules={[{ required: true, message: "Please enter your email!" }]}
+          rules={[
+            { required: true, message: "Please enter your email" },
+            { type: "email", message: "Invalid email format" },
+          ]}
         >
-          <Input prefix={<UserOutlined />} placeholder="Email" />
+          <Input placeholder="you@example.com" />
         </Form.Item>
 
         <Form.Item
           name="password"
           label="Password"
-          rules={[{ required: true, message: "Please enter your password!" }]}
+          rules={[{ required: true, message: "Please enter your password" }]}
         >
-          <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+          <Input.Password placeholder="Enter your password" />
         </Form.Item>
 
-        <Form.Item>
-          <Button type="primary" htmlType="submit" block>
-            Log In
-          </Button>
-        </Form.Item>
+        <Button type="primary" htmlType="submit" block>
+          Login
+        </Button>
       </Form>
+
+      <Divider plain>Or</Divider>
+
+      <div style={{ textAlign: "center" }}>
+        <Text>Don’t have an account?</Text>
+        <br />
+        <Button
+          type="link"
+          style={{ padding: 0, marginTop: 8 }}
+          onClick={() => navigate("/signup")}
+        >
+          <Text strong style={{ fontSize: "1rem" }}>
+            Create one here
+          </Text>
+        </Button>
+      </div>
     </div>
   );
 };
